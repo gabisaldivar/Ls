@@ -166,7 +166,7 @@ public class CommandLs {
         boolean r = values.reverse;
         boolean o = values.out != null;
         String pd = values.pathFile;
-        File pathDirectoryOutput = new File ("./src/main/resources/output/" + values.out);
+        File pathDirectoryOutput = new File ("./src/test/resources/output/" + values.out);
 
         CommandLs commandLs = new CommandLs(pd);
         try {
