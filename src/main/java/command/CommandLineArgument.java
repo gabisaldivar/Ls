@@ -7,6 +7,7 @@ import org.kohsuke.args4j.Option;
 
 
 public class CommandLineArgument {
+
     @Option(name = "-l", usage = "switch the output to a long format")
     boolean longFormat;
     @Option(name = "-h", usage = " switch output to human-readable format", depends = "-l")
@@ -27,6 +28,5 @@ public class CommandLineArgument {
             System.err.println(e.getMessage());
             throw e;
         }
-
     }
 }

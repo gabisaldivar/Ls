@@ -2,15 +2,13 @@
 package command;
 import org.junit.jupiter.api.Test;
 import org.kohsuke.args4j.CmdLineException;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestCommandLs {
-
     @Test
     void test1() throws IOException, CmdLineException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -24,9 +22,9 @@ public class TestCommandLs {
         System.out.flush();
         System.setOut(old);
         System.out.println(baos.toString());
-        assertEquals("Dashboard.pdf 111 13/12/2018 21:05:12 94481 Bytes\r\n" +
-                "file1.txt 111 13/05/2019 19:04:10 1673 Bytes\r\n" +
-                "file2.txt 111 13/05/2019 19:07:41 1530 Bytes\r\n", (baos.toString()));
+        assertEquals("Alv.txt 111 26/05/2019 10:46:09 1673 Bytes" + System.lineSeparator() +
+                "Dashboard.pdf 111 13/12/2018 21:05:12 94481 Bytes"  + System.lineSeparator()  +
+                "Zoc.txt 111 13/05/2019 19:07:41 1530 Bytes"  + System.lineSeparator(), (baos.toString()));
     }
 
     @Test
@@ -43,15 +41,14 @@ public class TestCommandLs {
         System.out.flush();
         System.setOut(old);
         System.out.println(baos.toString());
-        assertEquals("file2.txt 111 13/05/2019 19:07:41 1530 Bytes\r\n" +
-                "file1.txt 111 13/05/2019 19:04:10 1673 Bytes\r\n" +
-                "Dashboard.pdf 111 13/12/2018 21:05:12 94481 Bytes\r\n", (baos.toString()));
+        assertEquals("Zoc.txt 111 13/05/2019 19:07:41 1530 Bytes" + System.lineSeparator() +
+                "Dashboard.pdf 111 13/12/2018 21:05:12 94481 Bytes" + System.lineSeparator() +
+                "Alv.txt 111 26/05/2019 10:46:09 1673 Bytes" + System.lineSeparator(), (baos.toString()));
     }
 
     @Test
-    void test3() throws IOException, CmdLineException {
+    void test3() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
         PrintStream old = System.out;
         PrintStream ps = new PrintStream(baos);
         System.setOut(ps);
@@ -60,17 +57,13 @@ public class TestCommandLs {
         args[0] = "./src/test/resources/dir1";
         args[1] = "-h";
         args[2] = "-r";
-        try {
-            CommandLs.main(args);
-        } catch (CmdLineException e) {
-
-        }
+        assertThrows(CmdLineException.class, () -> CommandLs.main(args));
         System.out.flush();
         System.err.flush();
         System.setOut(old);
         System.setErr(old);
         System.out.println(baos.toString());
-        assertEquals("invalid input: option \"-h\" requires the option(s) [-l]\r\n", (baos.toString()));
+        assertEquals("invalid input: option \"-h\" requires the option(s) [-l]" + System.lineSeparator(), (baos.toString()));
     }
 
     @Test
@@ -83,12 +76,11 @@ public class TestCommandLs {
         args[4] = "output.txt3";
         CommandLs.main(args);
         StringBuilder sb = new StringBuilder();
-
         try (BufferedReader br = Files.newBufferedReader(Paths.get("./src/test/resources/output/" +
                 "output.txt3" ))) {
             String line;
             while ((line = br.readLine()) != null) {
-                sb.append(line).append("\r\n");
+                sb.append(line).append(System.lineSeparator());
             }
 
         } catch (IOException e) {
@@ -96,9 +88,9 @@ public class TestCommandLs {
         }
 
         System.out.println(sb);
-        assertEquals("Dashboard.pdf rwx 13/12/2018 21:05:12 92.2666 KB\r\n" +
-                "file1.txt rwx 13/05/2019 19:04:10 1.6337891 KB\r\n" +
-                "file2.txt rwx 13/05/2019 19:07:41 1.4941406 KB\r\n", (sb.toString()));
+        assertEquals("Alv.txt rwx 26/05/2019 10:46:09 1.6337891 KB" + System.lineSeparator() +
+                "Dashboard.pdf rwx 13/12/2018 21:05:12 92.2666 KB" + System.lineSeparator() +
+                "Zoc.txt rwx 13/05/2019 19:07:41 1.4941406 KB" + System.lineSeparator(), (sb.toString()));
     }
 
     @Test
@@ -118,7 +110,7 @@ public class TestCommandLs {
         {
             String line;
             while ((line = br.readLine()) != null) {
-                sb.append(line).append("\r\n");
+                sb.append(line).append(System.lineSeparator());
             }
 
         } catch (IOException e) {
@@ -126,15 +118,14 @@ public class TestCommandLs {
         }
 
         System.out.println(sb);
-        assertEquals("file2.txt rwx 13/05/2019 19:07:41 1.4941406 KB\r\n" +
-                "file1.txt rwx 13/05/2019 19:04:10 1.6337891 KB\r\n" +
-                "Dashboard.pdf rwx 13/12/2018 21:05:12 92.2666 KB\r\n", (sb.toString()));
+        assertEquals("Zoc.txt rwx 13/05/2019 19:07:41 1.4941406 KB" + System.lineSeparator() +
+                "Dashboard.pdf rwx 13/12/2018 21:05:12 92.2666 KB" + System.lineSeparator() +
+                "Alv.txt rwx 26/05/2019 10:46:09 1.6337891 KB" + System.lineSeparator(), (sb.toString()));
     }
 
     @Test
     void nonexistentDirectory() throws IOException, CmdLineException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
         PrintStream old = System.out;
         PrintStream ps = new PrintStream(baos);
         System.setOut(ps);
@@ -146,8 +137,8 @@ public class TestCommandLs {
         System.out.flush();
         System.setOut(old);
         System.out.println(baos.toString());
-        assertEquals("selected file path does not exist: \r\n" +
-                ".\\src\\test\\resources\\gaby97\r\n", (baos.toString()));
+        assertEquals("selected file path does not exist: " + System.lineSeparator() +
+                 ".\\src\\test\\resources\\gaby97" + System.lineSeparator(), (baos.toString()));
     }
 }
 

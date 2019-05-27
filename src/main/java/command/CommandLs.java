@@ -1,22 +1,18 @@
 package command;
+import javafx.util.Pair;
 import org.kohsuke.args4j.CmdLineException;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
+import java.util.*;
 
 
 public class CommandLs {
     private static String pathDirectory;
     private static ArrayList result;
     private static ArrayList<File> infoOrdered;
-
 
     public CommandLs(String currentDirectory) {
         pathDirectory = currentDirectory;
@@ -29,21 +25,22 @@ public class CommandLs {
         File file = new File(pathDirectory);
         File[] listDocs = file.listFiles();
         if (file.isDirectory()) {
-            if (listDocs == null) throw new AssertionError();
+            assert listDocs != null;
             Collections.addAll(infoOrdered, listDocs);
         } else if (file.isFile()) {
             infoOrdered.add(file);
-            Collections.addAll(infoOrdered);
         }
     }
 
-    private static void getCommand_l() {
+    private static void getCommand_l(boolean h) {
         for (File document : infoOrdered) {
             String name = document.getName();
-            String permission = getPermission(document);
-            String sizeFile = String.valueOf(document.length()).concat(" ").concat("Bytes");
-            String dateFile = getDate(document);
-            String line = name.concat(" ").concat(permission).concat(" ").concat(dateFile).concat(" ").concat(sizeFile);
+            String permission = (h) ? getPermission(document,true) : getPermission(document, false);
+            String sizeFile = (h) ? getSizeHumanReadable(document.length()) : String.valueOf(document.length()).
+                    concat(" ").concat("Bytes");
+            String dateFile =  getDate(document);
+            String line = name.concat(" ").concat(permission).concat(" ").
+                    concat(dateFile).concat(" ").concat(sizeFile);
             result.add(line);
         }
     }
@@ -70,10 +67,9 @@ public class CommandLs {
     }
 
 
-    private static void getCommand_o(ArrayList<String> list, File pathDirectoryOutput, boolean o) {
+    private static void getCommand_o(ArrayList<String> list, File pathDirectoryOutput, boolean o) throws IOException{
         if (o) {
             BufferedWriter writer;
-            try {
                 writer = Files.newBufferedWriter(Paths.get(pathDirectoryOutput.toURI()));
 
                 for (String line : list) {
@@ -82,27 +78,29 @@ public class CommandLs {
                 }
                 writer.flush();
                 writer.close();
-            } catch (IOException ex) {
-                System.out.println(":(");
             }
-        } else {
+        else
+            {
             for (String info : list) System.out.println(info);
         }
     }
 
-    private static String getPermission(File document) {
-        String permission = (document.canRead()) ? "1" : "0";
-        permission = permission.concat((document.canWrite()) ? "1" : "0");
-        permission = permission.concat((document.canExecute()) ? "1" : "0");
-        return permission;
-    }
+   private static String getPermission(File document, boolean h) {
+       List<Pair<String, String>> list = new ArrayList<>();
+       Pair l = new <String, String>Pair("0", "_");
+       list.add(new Pair("1", "r"));
+       list.add(new Pair<>("1", "w"));
+       list.add(new Pair<>("1", "x"));
 
-    private static String getRWX(File document) {
-        String permission = (document.canRead()) ? "r" : "_";
-        permission = permission.concat((document.canWrite()) ? "w" : "_");
-        permission = permission.concat((document.canExecute()) ? "x" : "_");
-        return permission;
-    }
+           String permission = (h)? (document.canRead() ? list.get(0).getValue() : (String) l.getValue()):
+                   (document.canRead() ? list.get(0).getKey() : (String) l.getKey());
+           permission = permission.concat((h)? (document.canWrite() ? list.get(1).getValue() :
+                   (String) l.getValue()): (document.canWrite() ? list.get(1).getKey() : (String) l.getKey()));
+           permission = permission.concat((h)? (document.canExecute() ? list.get(2).getValue() : (String) l.getValue()):
+                   (document.canExecute() ? list.get(2).getKey() : (String) l.getKey()));
+           return permission;
+
+   }
 
     private static String getSizeHumanReadable(long sizeDoc) {
         long KB = 1024L;
@@ -127,17 +125,12 @@ public class CommandLs {
 
     private static List<String> info(boolean l, boolean h, boolean r) {
             if (l && h) {
-                for (File document : infoOrdered) {
-                    String name = document.getName();
-                    String permission = getRWX(document);
-                    String dateFile = getDate(document);
-                    String sizeFile = getSizeHumanReadable(document.length());
-                    String line = name.concat(" ").concat(permission).concat(" ").concat(dateFile).concat(" ").concat(sizeFile);
-                    result.add(line);
+                getCommand_l(true);
                 }
-            } else if (l) {
-                getCommand_l();
-            } else if (h) {
+             else if (l) {
+                getCommand_l(false);
+            }
+             else if (h) {
                 getCommand_h();
             }
 
@@ -159,7 +152,7 @@ public class CommandLs {
 
     }
 
-    public static void main(String[] args) throws IOException, CmdLineException {
+    public static void main(String[] args) throws CmdLineException, IOException {
         CommandLineArgument values = new CommandLineArgument(args);
         boolean l = values.longFormat;
         boolean h = values.humanReadable;
@@ -167,13 +160,8 @@ public class CommandLs {
         boolean o = values.out != null;
         String pd = values.pathFile;
         File pathDirectoryOutput = new File ("./src/test/resources/output/" + values.out);
-
         CommandLs commandLs = new CommandLs(pd);
-        try {
             commandLs.process(l,h,r,o,pathDirectoryOutput);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
-}
